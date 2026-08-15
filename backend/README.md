@@ -13,6 +13,9 @@ Upload (image bytes)
 validate & normalize (Pillow: strip EXIF, downscale, re-encode JPEG)
       │
       ▼
+upload to S3 (boto3, random key, presigned URL returned)
+      │
+      ▼
 LangGraph pipeline
   ┌─────────────┐
   │  classify   │  -> ChatGroq + structured output -> DocumentType
