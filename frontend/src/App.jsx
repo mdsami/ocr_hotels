@@ -12,7 +12,7 @@ import React, { useState, useRef, useCallback } from "react";
  * DEMO MODE using mock data, so the UI can always be previewed.
  * ------------------------------------------------------------------
  */
-const API_BASE = "http://localhost:8000";
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
 
 const DOC_TYPES = [
   {
