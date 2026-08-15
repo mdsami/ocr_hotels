@@ -116,6 +116,13 @@ class ExtractionResponse(BaseModel):
     raw_model_notes: Optional[str] = Field(
         None, description="Any free-text caveats the model produced (e.g. blurry image)."
     )
+    s3_key: Optional[str] = Field(
+        None, description="S3 object key the uploaded image was stored under."
+    )
+    s3_url: Optional[str] = Field(
+        None,
+        description="Presigned URL to download the stored image. Expires 1 hour after issuance.",
+    )
 
 
 class ErrorResponse(BaseModel):
