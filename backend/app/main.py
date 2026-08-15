@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.graph import document_extraction_graph
 from app.image_utils import validate_and_normalize_image, bytes_to_data_uri, ALLOWED_CONTENT_TYPES
 from app.schemas import ExtractionResponse, DocumentType
+from app import s3_utils
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("id-extractor")
