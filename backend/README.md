@@ -84,9 +84,14 @@ Response:
     "mrz_raw": "P<DEUDOE<<JOHN<MICHAEL<<<<<<<<<<<<<<<<<<<<<\n..."
   },
   "warnings": [],
-  "raw_model_notes": "Clear, well-lit passport photo page with legible MRZ."
+  "raw_model_notes": "Clear, well-lit passport photo page with legible MRZ.",
+  "s3_key": "uploads/3f1b2c4a-....jpg",
+  "s3_url": "https://<bucket>.s3.amazonaws.com/uploads/3f1b2c4a-....jpg?X-Amz-..."
 }
 ```
+
+The uploaded image is stored in S3 under a random key (never a public URL) —
+`s3_url` is a presigned GET URL valid for 1 hour.
 
 ### `GET /health`
 Simple liveness check.
