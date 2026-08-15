@@ -64,6 +64,12 @@ async def extract_document(
     data_uri = bytes_to_data_uri(normalized, mime="image/jpeg")
 
     try:
+        s3_info = s3_utils.upload_image(normalized)
+    except RuntimeError as e:
+        # e.g. missing S3_BUCKET_NAME or AWS credentials
+        raise HTTPException(status_code=500, detail=str(e))
+
+    try:
         result = document_extraction_graph.invoke({"image_data_uri": data_uri, "hint": hint})
     except RuntimeError as e:
         # e.g. missing GROQ_API_KEY
@@ -78,4 +84,6 @@ async def extract_document(
         fields=result.get("fields", {}),
         warnings=result.get("warnings", []),
         raw_model_notes=result.get("notes"),
+        s3_key=s3_info["s3_key"],
+        s3_url=s3_info["s3_url"],
     )
