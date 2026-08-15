@@ -94,9 +94,13 @@ SCHEMA_BY_TYPE = {
 # ---------------------------------------------------------------------------
 # Nodes
 # ---------------------------------------------------------------------------
-def _invoke_structured(schema, messages: list[BaseMessage]):
+RATE_LIMIT_RETRY_DELAY_SECONDS = 15
+RATE_LIMIT_MAX_RETRIES = 2
+
+
+def _invoke_structured(schema, messages: list[BaseMessage], reasoning_effort: Optional[str] = None, max_tokens: Optional[int] = None):
     """
-    Runs a structured-output call against the vision model, with one retry.
+    Runs a structured-output call against the vision model, with retries.
 
     qwen3.6-27b "thinks" before answering, and that thinking counts against
     max_tokens. On harder images the thinking trace can occasionally run so
@@ -104,15 +108,30 @@ def _invoke_structured(schema, messages: list[BaseMessage]):
     tool_use_failed with an empty failed_generation. If that happens, retry
     once with reasoning_effort="none" to skip the extended thinking pass —
     it trades a bit of reasoning depth for a call that reliably completes.
+
+    Groq's tokens-per-minute limit is shared across every call this process
+    makes, so a burst of requests can trip a 429 even when each individual
+    call is well within max_tokens. That's a transient condition, not a bad
+    request, so we retry it a couple of times with a short delay rather than
+    failing the whole extraction.
     """
-    llm = get_vision_llm(temperature=0.0)
-    try:
-        return llm.with_structured_output(schema).invoke(messages)
-    except GroqBadRequestError as e:
-        if "tool_use_failed" not in str(e):
-            raise
-        fallback_llm = get_vision_llm(temperature=0.0, reasoning_effort="none")
-        return fallback_llm.with_structured_output(schema).invoke(messages)
+    llm_kwargs = {}
+    if max_tokens is not None:
+        llm_kwargs["max_tokens"] = max_tokens
+
+    for attempt in range(RATE_LIMIT_MAX_RETRIES + 1):
+        llm = get_vision_llm(temperature=0.0, reasoning_effort=reasoning_effort, **llm_kwargs)
+        try:
+            return llm.with_structured_output(schema).invoke(messages)
+        except GroqBadRequestError as e:
+            if "tool_use_failed" not in str(e):
+                raise
+            fallback_llm = get_vision_llm(temperature=0.0, reasoning_effort="none", **llm_kwargs)
+            return fallback_llm.with_structured_output(schema).invoke(messages)
+        except GroqRateLimitError:
+            if attempt == RATE_LIMIT_MAX_RETRIES:
+                raise
+            time.sleep(RATE_LIMIT_RETRY_DELAY_SECONDS)
 
 
 def classify_node(state: GraphState) -> GraphState:
