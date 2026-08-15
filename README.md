@@ -46,3 +46,25 @@ The frontend calls `http://localhost:8000/extract` by default — edit
 
 See `backend/README.md` for the architecture diagram, API contract, and
 security notes (card number masking, no persistence, CORS, etc).
+
+## Deploy on Railway
+
+Both services ship a `Dockerfile`. Create two Railway services from this
+repo, one per directory:
+
+**backend service**
+- Root directory: `backend`
+- Railway auto-detects the `Dockerfile`, builds, deploys.
+- Set variables: `GROQ_API_KEY`, `CORS_ORIGINS=https://<frontend-domain>`
+- Uvicorn binds to Railway's `$PORT` automatically.
+
+**frontend service**
+- Root directory: `frontend`
+- Set build arg/variable: `VITE_API_BASE=https://<backend-domain>`
+  (Vite bakes this in at build time — set it before the first deploy, and
+  redeploy the frontend if the backend's URL ever changes.)
+- Served by nginx, also binds to Railway's `$PORT` automatically.
+
+Deploy the backend first, grab its public URL, then set `VITE_API_BASE` on
+the frontend service and `CORS_ORIGINS` on the backend to the frontend's
+public URL.
