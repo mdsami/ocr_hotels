@@ -142,12 +142,18 @@ def classify_node(state: GraphState) -> GraphState:
     if state.get("hint"):
         human_content[0]["text"] += f" User hint: {state['hint']}"
 
+    # Classification is a simple 5-way decision — skip the extended thinking
+    # pass and cap tokens low. This cuts the tokens-per-minute cost of every
+    # /extract call roughly in half, since classify + extract used to both
+    # spend up to DEFAULT_MAX_TOKENS on Groq's shared TPM budget.
     result: ClassificationResult = _invoke_structured(
         ClassificationResult,
         [
             SystemMessage(content=CLASSIFY_SYSTEM_PROMPT),
             HumanMessage(content=human_content),
         ],
+        reasoning_effort="none",
+        max_tokens=512,
     )
 
     return {
