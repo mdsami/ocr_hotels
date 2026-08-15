@@ -101,10 +101,14 @@ Simple liveness check.
 - **Bank card numbers**: the extraction prompt instructs the model to only
   ever return a masked card number (last 4 digits). The `validate` node also
   defensively re-masks anything the model leaks in full, as a second layer.
-- **No persistence**: this reference implementation does not store uploaded
-  images or extracted data anywhere — everything is processed in memory per
-  request. If you add storage, encrypt data at rest and treat this as PII/KYC
-  data (GDPR / local data-protection law applies).
+- **S3 storage**: uploaded images are stored in S3 under a random UUID key
+  (`uploads/<uuid>.jpg`). The bucket should be **private** — the API never
+  makes objects public, it only returns short-lived (1 hour) presigned URLs.
+  Enable default encryption (SSE-S3 or SSE-KMS) on the bucket and scope the
+  IAM credentials to `s3:PutObject` / `s3:GetObject` on that one bucket.
+  Treat this as PII/KYC data (GDPR / local data-protection law applies) —
+  add a lifecycle rule to expire/delete objects if you don't need to retain
+  them.
 - **Transport security**: run behind HTTPS in any real deployment; do not
   send document images over plain HTTP.
 - **CORS**: `CORS_ORIGINS` in `.env` should be locked down to your real
