@@ -46,6 +46,7 @@ pip install -r requirements.txt
 
 cp .env.example .env
 # then edit .env and set GROQ_API_KEY (get one at https://console.groq.com/keys)
+# and the AWS_* / S3_BUCKET_NAME vars for upload storage
 ```
 
 ## Run
