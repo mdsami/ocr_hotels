@@ -12,9 +12,10 @@ validated automatically instead of us hand-rolling JSON parsing.
 from __future__ import annotations
 
 import re
+import time
 from typing import Optional, TypedDict
 
-from groq import BadRequestError as GroqBadRequestError
+from groq import BadRequestError as GroqBadRequestError, RateLimitError as GroqRateLimitError
 from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 from langgraph.graph import StateGraph, END
 
