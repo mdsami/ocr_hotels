@@ -43,7 +43,7 @@ def health():
 @app.post("/extract", response_model=ExtractionResponse)
 async def extract_document(
     file: UploadFile = File(..., description="Image of the passport, driver license, national ID, or bank card"),
-    hint: str | None = Form(None, description="Optional hint, e.g. 'passport'"),
+    hint: str | None = Form(None, description="Optional hint, e.g. 'passport', 'driver_license', 'national_id', 'bank_card'"),
 ):
     if file.content_type not in ALLOWED_CONTENT_TYPES:
         raise HTTPException(
